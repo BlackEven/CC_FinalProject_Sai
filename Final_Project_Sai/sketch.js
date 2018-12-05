@@ -8,75 +8,101 @@ with the help of sound. You can control the movement of
 your character with arrow key in the keyboard. The story 
 is about a person who suddenly become blind and need to 
 go to the hospital nearby and finally go back home safely.
+
+Reference:
+https://github.com/IDMNYU/p5.js-speech/blob/master/examples/05continuousrecognition.html
 */
 
-//variable of the location of character
-var x,y;
+var myRec = new p5.SpeechRec(); // new P5.SpeechRec object
+  myRec.continuous = true; // do continuous recognition
+  myRec.interimResults = true; // allow partial recognition (faster, less accurate)
+  var x, y; // location of "character"
+  var dx, dy; //increment of location
 
-function setup() {
-  createCanvas(400, 400);
-  
-  //set the value of character's location
-  x = width/2;
-  y = height/2;
-}
+  function setup() {
+    // graphics stuff:
+    createCanvas(500, 700);
+    x = width/2;
+    y = height/2+100;
+    dx = 0;
+    dy = 0;
+    
+    myRec.onResult = parseResult; // recognition callback
+    myRec.start(); // start engine
+  }
 
-function draw() {
-  background(0);
-  
-  //display character
-  ellipse(x,y,20,20);
-}
+  function draw() {
+    background(0);
+    // instructions:
+    fill(255);
+    textSize(16);
+    textAlign(LEFT);
+    text("Instruction: go,back,left,right,stay", 20, 30);
+    
+    //map of home
+    map1();
+    
+    //character:
+    //display
+    noStroke();
+    fill(255);
+    ellipse(x, y, 25, 25);
+    //move
+    x+=dx;
+    y+=dy;
+    if(x<0) x = width;
+    if(y<0) y = height;
+    if(x>width) x = 0;
+    if(y>height) y = 0;
+  }
 
-function keyPressed() {
-  //move upside
-  if (keyCode === UP_ARROW) {
-    y = y - 5;
+  function parseResult() {
+    // recognition system will often append words into phrases.
+    // so hack here is to only use the last word:
+    var mostrecentword = myRec.resultString.split(' ').pop();
+    if(mostrecentword.indexOf("left")!==-1) { dx=-0.5;dy=0; }
+    else if(mostrecentword.indexOf("right")!==-1) { dx=0.5;dy=0; }
+    else if(mostrecentword.indexOf("go")!==-1) { dx=0;dy=-0.5; }
+    else if(mostrecentword.indexOf("back")!==-1) { dx=0;dy=0.5; }
+    else if(mostrecentword.indexOf("stay")!==-1) { dx=0;dy=0; }
+    console.log(mostrecentword);
   }
-  //move downside
-  if (keyCode === DOWN_ARROW) {
-    y = y + 5;
-  }
-  //move towards left
-  if (keyCode === LEFT_ARROW) {
-    x = x - 5;
-  }
-  //move towards right
-  if (keyCode === RIGHT_ARROW) {
-    x = x + 5;
-  }
-}
 
+  function map1() {
+    // room:
+    //wall
+    noFill();
+    stroke(255);
+    strokeWeight(8);
+    rect(0,0, 500, 700);
+    //bed
+    strokeWeight(2);
+    rect(0,250,240,120);
+    rect(20,280,30,60); //pillow
+    rect(70,250,25,120); //quilt
+    //nightstands
+    rect(0,180,40,50);
+    rect(0,390,40,50);
+    //desk
+    rect(50,height-100,200,100);
+    //chair
+    rect(100,height-150,60,50,12,12,0,0);
+    //sofa
+    rect(width-120, height/2, 100, 200);
+    rect(width-120, height/2+20, 80, 80);
+    rect(width-120, height/2+100, 80, 80);
+    //box
+    push();
+    rotate(radians(10));
+    rect(width-100, 100, 60, 60);
+    rect(width-75, 100, 10, 60);
+    pop();
+    //door
+    fill(255);
+    rect(width-140, 0,80,20);
+  }
 /* 
 //Tutorial
-Part 1. Develop a program with a circle controlled by 
-your voice. This circle will be the user-controlled 
-“character”.
-
-Pseudocode:
--Erase background
--Draw an ellipse at a set location
--Change its location based on your voice. If you say 
-“Go”, the y value of circle’s location adds a negative 
-value. If you say “Keep going”, the y value of circle’s 
-location adds a negative value each frame until the 
-next voice prompt. If you say “Left”, the x value of 
-circle’s location adds a negative value. If you say 
-“Right”, the x value of circle’s location adds a 
-positive value. If you say “Stay”, the location of 
-circle will remains unchanged.
-
-Part 2. Write a program to create a map of one room 
-of home using shapes and images. You will learn the 
-tutorial about how to control the character at home. 
-
-The map of a room in home contains bed, chair, desk, 
-boxes, closet, floor lamp, door, and walls.
-
-Pseudocode:
--Draw the outline of map to create boundaries as 
-walls.
--Draw objects in map with basic shapes.
 -Go to the next map when the “character” arrives 
 the end point (door) of this map.
 
