@@ -29,7 +29,10 @@ var dx, dy; //increment of location
     createCanvas(500, 700);
     
     // create a user controlled sprite
-    role = createSprite(width/2,height/2+100,30,30);
+    role = createSprite(width/2,height/2+100);
+    //role.addAnimation('normal','role.png');
+    //in sublime
+    role.addAnimation('normal','assets/role.png');
     role.setCollider('circle', 0, 0, 15);
     dx = 0;
     dy = 0;
@@ -37,16 +40,21 @@ var dx, dy; //increment of location
     // create obstacle group
     obstacles = new Group();
     for(var i = 0; i < 11; i++) {
-      var bx = [250,250,5,495,130,30,30,150,130,width-70,width-70];
-      var by = [5,695,350,350,310,205,415,height-60,height-135,height/2+100,130];
-      var bw = [500,500,10,10,240,40,40,200,60,100,60];
-      var bh = [10,10,700,700,120,50,50,100,50,200,60];
-      var box = createSprite(bx[i],by[i],bw[i],bh[i]);
+      var bx = [250,250,5,495,130,30,30,150,width-70,width-70,130];
+      var by = [5,695,350,350,310,205,415,height-60,130,height/2+100,height-135];
+      var box = createSprite(bx[i],by[i]);
+      //var picString = 'obstacle'+i+'.png'
+      //in sublime
+      var picString = 'assets/obstacle'+i+'.png';
+      box.addAnimation('normal',picString);
       obstacles.add(box);
     }
     
     //create a door
-    door = createSprite(width-100,10,80,20);
+    door = createSprite(width-100,10);
+    //door.addAnimation('normal','door.png');
+    //in sublime
+    door.addAnimation('normal','assets/door.png');
     
     myRec.onResult = parseResult; // recognition callback
     myRec.start(); // start engine
@@ -70,7 +78,7 @@ var dx, dy; //increment of location
     
     //detect collide and overlap with sprites
     role.collide(obstacles);
-    role.overlap(door,exit);
+    //role.overlap(door,exit);
     
     //display sprites
     drawSprites();
