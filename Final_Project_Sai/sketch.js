@@ -14,18 +14,39 @@ https://github.com/IDMNYU/p5.js-speech/blob/master/examples/05continuousrecognit
 */
 
 var myRec = new p5.SpeechRec(); // new P5.SpeechRec object
-  myRec.continuous = true; // do continuous recognition
-  myRec.interimResults = true; // allow partial recognition (faster, less accurate)
-  var x, y; // location of "character"
-  var dx, dy; //increment of location
+myRec.continuous = true; // do continuous recognition
+myRec.interimResults = true; // allow partial recognition (faster, less accurate)
+
+// declare sprites
+var obstacles;
+var role;
+var door;
+
+var dx, dy; //increment of location
 
   function setup() {
     // graphics stuff:
     createCanvas(500, 700);
-    x = width/2;
-    y = height/2+100;
+    
+    // create a user controlled sprite
+    role = createSprite(width/2,height/2+100,30,30);
+    role.setCollider('circle', 0, 0, 15);
     dx = 0;
     dy = 0;
+    
+    // create obstacle group
+    obstacles = new Group();
+    for(var i = 0; i < 11; i++) {
+      var bx = [250,250,5,495,130,30,30,150,130,width-70,width-70];
+      var by = [5,695,350,350,310,205,415,height-60,height-135,height/2+100,130];
+      var bw = [500,500,10,10,240,40,40,200,60,100,60];
+      var bh = [10,10,700,700,120,50,50,100,50,200,60];
+      var box = createSprite(bx[i],by[i],bw[i],bh[i]);
+      obstacles.add(box);
+    }
+    
+    //create a door
+    door = createSprite(width-100,10,80,20);
     
     myRec.onResult = parseResult; // recognition callback
     myRec.start(); // start engine
@@ -39,21 +60,20 @@ var myRec = new p5.SpeechRec(); // new P5.SpeechRec object
     textAlign(LEFT);
     text("Instruction: go,back,left,right,stay", 20, 30);
     
-    //map of home
-    map1();
+    //role
+    // role.position.x+=dx;
+    // role.position.y+=dy;
     
-    //character:
-    //display
-    noStroke();
-    fill(255);
-    ellipse(x, y, 25, 25);
-    //move
-    x+=dx;
-    y+=dy;
-    if(x<0) x = width;
-    if(y<0) y = height;
-    if(x>width) x = 0;
-    if(y>height) y = 0;
+    //test-mouse control
+    role.velocity.x = (mouseX-role.position.x)/10;
+    role.velocity.y = (mouseY-role.position.y)/10;
+    
+    //detect collide and overlap with sprites
+    role.collide(obstacles);
+    role.overlap(door,exit);
+    
+    //display sprites
+    drawSprites();
   }
 
   function parseResult() {
@@ -67,79 +87,18 @@ var myRec = new p5.SpeechRec(); // new P5.SpeechRec object
     else if(mostrecentword.indexOf("stay")!==-1) { dx=0;dy=0; }
     console.log(mostrecentword);
   }
-
-  function map1() {
-    // room:
-    //wall
-    noFill();
-    stroke(255);
-    strokeWeight(8);
-    rect(0,0, 500, 700);
-    //bed
-    strokeWeight(2);
-    rect(0,250,240,120);
-    rect(20,280,30,60); //pillow
-    rect(70,250,25,120); //quilt
-    //nightstands
-    rect(0,180,40,50);
-    rect(0,390,40,50);
-    //desk
-    rect(50,height-100,200,100);
-    //chair
-    rect(100,height-150,60,50,12,12,0,0);
-    //sofa
-    rect(width-120, height/2, 100, 200);
-    rect(width-120, height/2+20, 80, 80);
-    rect(width-120, height/2+100, 80, 80);
-    //box
-    push();
-    rotate(radians(10));
-    rect(width-100, 100, 60, 60);
-    rect(width-75, 100, 10, 60);
-    pop();
-    //door
-    fill(255);
-    rect(width-140, 0,80,20);
+  
+  function exit() {
+    background(255);
   }
+
 /* 
-//Tutorial
--Go to the next map when the “character” arrives 
-the end point (door) of this map.
+bug:
+1.can't recognize voice if you don't speak for a long time
 
-Part 3. Write a program to test if “character” 
-intersects with objects or boundaries in maps. This 
-will be used to determine if the “character” collides 
-with the object or boundaries.
+progress:
+sound - ripples - HP - time/distance - black snow - street
 
-Subparts
-  Part 3.1. Test if the “character” intersects with 
-  boundaries.
-  
-  Pseudocode:
-  -Create a boolean variable to update status when 
-  they collide.
-  -Calculate the distance between the circle and 
-  boundaries.
-  -Return TRUE if the distance is less than the 
-  radius of circle.
-  -Change the location of “character” once they 
-  collide to make sure it doesn't cross the border.
-
-  Part 3.2. Test if the “character” intersects with 
-  other objects.
-  
-  Pseudocode:
-  -Create a boolean variable to update status when 
-  “character” collides with other objects (except 
-  car/ambulance). Create another boolean variable 
-  to update status when “character” collides with 
-  car or ambulance.
-  -Calculate the distance between the circle and 
-  other objects.
-  -Return TRUE if the distance is less than the sum 
-  of radius of circle and radius of objects.
-  -Change the location of character once they collide 
-  to make sure they will not overlap.
 
 Part4. Write a program to create echo effect when you 
 speak, and the strength of the echo depends on the 
