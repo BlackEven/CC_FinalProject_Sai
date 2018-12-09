@@ -23,6 +23,19 @@ var role;
 var door;
 
 var dx, dy; //increment of location
+  function preload() {
+    soundFormats('mp3', 'wav');
+    //ouchSound = loadSound('ouch1.wav');
+    ouchSound = loadSound('assets/ouch1.wav');
+    //collideSound = loadSound('collide_with_objects.wav');
+    collideSound = loadSound('assets/collide_with_objects.wav');
+    //winSound = loadSound('win.wav');
+    winSound = loadSound('assets/win.wav');
+    //clockSound = loadSound('clock_tick.mp3');
+    clockSound = loadSound('assets/clock_tick.mp3');
+    //walkSound = loadSound('walk.mp3');
+    walkSound = loadSound('assets/walk.mp3');
+  }
 
   function setup() {
     // graphics stuff:
@@ -33,14 +46,14 @@ var dx, dy; //increment of location
     //role.addAnimation('normal','role.png');
     //in sublime
     role.addAnimation('normal','assets/role.png');
-    role.setCollider('circle', 0, 0, 15);
+    //role.setCollider('circle', 0, 0, 15);
     dx = 0;
     dy = 0;
     
     // create obstacle group
     obstacles = new Group();
     for(var i = 0; i < 11; i++) {
-      var bx = [250,250,5,495,130,30,30,150,width-70,width-70,130];
+      var bx = [250,250,5,495,130,30,30,150,350,width-70,130];
       var by = [5,695,350,350,310,205,415,height-60,130,height/2+100,height-135];
       var box = createSprite(bx[i],by[i]);
       //var picString = 'obstacle'+i+'.png'
@@ -58,54 +71,110 @@ var dx, dy; //increment of location
     
     myRec.onResult = parseResult; // recognition callback
     myRec.start(); // start engine
+    
+    //play clocksound
+    clockSound.play();
+    clockSound.loop();
+    
   }
 
   function draw() {
     background(0);
+    
+    //role
+    role.position.x+=dx;
+    role.position.y+=dy;
+    
+    //test-mouse control
+    // role.velocity.x = (mouseX-role.position.x)/10;
+    // role.velocity.y = (mouseY-role.position.y)/10;
+    
+    //detect collide and overlap with sprites
+    role.collide(obstacles,collideWithObstacles);
+    role.collide(door,win);
+    
+    //display sprites
+    drawSprites();
+    
+    //black background
+    // fill(0);
+    // noStroke();
+    // rect(0,0,500,700);
+    
     // instructions:
     fill(255);
     textSize(16);
     textAlign(LEFT);
     text("Instruction: go,back,left,right,stay", 20, 30);
-    
-    //role
-    // role.position.x+=dx;
-    // role.position.y+=dy;
-    
-    //test-mouse control
-    role.velocity.x = (mouseX-role.position.x)/10;
-    role.velocity.y = (mouseY-role.position.y)/10;
-    
-    //detect collide and overlap with sprites
-    role.collide(obstacles);
-    //role.overlap(door,exit);
-    
-    //display sprites
-    drawSprites();
   }
 
   function parseResult() {
     // recognition system will often append words into phrases.
     // so hack here is to only use the last word:
     var mostrecentword = myRec.resultString.split(' ').pop();
-    if(mostrecentword.indexOf("left")!==-1) { dx=-0.5;dy=0; }
-    else if(mostrecentword.indexOf("right")!==-1) { dx=0.5;dy=0; }
-    else if(mostrecentword.indexOf("go")!==-1) { dx=0;dy=-0.5; }
-    else if(mostrecentword.indexOf("back")!==-1) { dx=0;dy=0.5; }
-    else if(mostrecentword.indexOf("stay")!==-1) { dx=0;dy=0; }
+    if(mostrecentword.indexOf("left")!==-1) { 
+      dx=-0.6;
+      dy=0;     
+      walkSound.playMode('restart');
+      walkSound.play(0,1.8);
+      walkSound.loop();
+    }
+    else if(mostrecentword.indexOf("right")!==-1) { 
+      dx=0.6;
+      dy=0;     
+      walkSound.playMode('restart');
+      walkSound.play(0,1.8);
+      walkSound.loop();
+    }
+    else if(mostrecentword.indexOf("go")!==-1) { 
+      dx=0;
+      dy=-0.6;    
+      walkSound.playMode('restart');
+      walkSound.play(0,1.8);
+      walkSound.loop();
+    }
+    else if(mostrecentword.indexOf("back")!==-1) { 
+      dx=0;
+      dy=0.6;     
+      walkSound.playMode('restart');
+      walkSound.play(0,1.8);
+      walkSound.loop();
+    }
+    else if(mostrecentword.indexOf("stay")!==-1) { 
+      dx=0;
+      dy=0; 
+      walkSound.setLoop(false);
+    }
     console.log(mostrecentword);
   }
   
-  function exit() {
-    background(255);
+  function win() {
+    dx=0;
+    dy=0;
+    clockSound.setLoop(false);
+    winSound.playMode('restart');
+    winSound.play();
+    walkSound.setLoop(false);
+  }
+
+  function collideWithObstacles() {
+    dx=0;
+    dy=0;
+    ouchSound.playMode('restart');
+    ouchSound.play();
+    collideSound.playMode('restart');
+    collideSound.play();
+    walkSound.setLoop(false);
   }
 
 /* 
 bug:
 1.can't recognize voice if you don't speak for a long time
+2.can't load sound in files I uploaded to github with the same code
+3.walk sound seems not natural
 
 progress:
-sound - ripples - HP - time/distance - black snow - street
+sound(done) - ripples - HP - time/distance - black snow - street
 
 
 Part4. Write a program to create echo effect when you 
@@ -207,12 +276,6 @@ it anymore.
 -If the HP equals to 0 and the “character” doesn’t collide
 with a car/ambulance, the game will restart from map of home.
 
-Part 9. Write a program to integrate sound (Knock on the 
-wall, Tripped by an object, Hit by a car, Car, Ambulance, 
-(White Cane), Traffic light, People, Character, Doctor).
-
-Pseudocode:
--Use sound library to integrate sound
 
 //End
 Part 10. Write a program to show how much time did you 
