@@ -11,6 +11,7 @@ go to the hospital nearby and finally go back home safely.
 
 Reference:
 https://github.com/IDMNYU/p5.js-speech/blob/master/examples/05continuousrecognition.html
+https://www.openprocessing.org/sketch/418019
 */
 
 var myRec = new p5.SpeechRec(); // new P5.SpeechRec object
@@ -21,20 +22,38 @@ myRec.interimResults = true; // allow partial recognition (faster, less accurate
 var obstacles;
 var role;
 var door;
-
 var dx, dy; //increment of location
+
+var hp = 3;
+
+var stage = 0;
+var winBg = 0;
+var loseBg = 0;
+
+//image
+var life_3;
+var life_2;
+var life_1;
+
   function preload() {
     soundFormats('mp3', 'wav');
-    //ouchSound = loadSound('ouch1.wav');
+    // ouchSound = loadSound('ouch1.wav');
     ouchSound = loadSound('assets/ouch1.wav');
-    //collideSound = loadSound('collide_with_objects.wav');
+    // collideSound = loadSound('collide_with_objects.wav');
     collideSound = loadSound('assets/collide_with_objects.wav');
-    //winSound = loadSound('win.wav');
+    // winSound = loadSound('win.wav');
     winSound = loadSound('assets/win.wav');
-    //clockSound = loadSound('clock_tick.mp3');
-    clockSound = loadSound('assets/clock_tick.mp3');
-    //walkSound = loadSound('walk.mp3');
-    walkSound = loadSound('assets/walk.mp3');
+    // loseSound = loadSound('lose.wav');
+    loseSound = loadSound('assets/lose.wav');
+    // walkSound = loadSound('walkIndoor.wav');
+    walkSound = loadSound('assets/walkIndoor.wav');
+    
+    // life_3 = loadImage('3_life.png');
+    // life_2 = loadImage('2_life.png');
+    // life_1 = loadImage('1_life.png');
+    life_3 = loadImage('assets/3_life.png');
+    life_2 = loadImage('assets/2_life.png');
+    life_1 = loadImage('assets/1_life.png');
   }
 
   function setup() {
@@ -43,7 +62,7 @@ var dx, dy; //increment of location
     
     // create a user controlled sprite
     role = createSprite(width/2,height/2+100);
-    //role.addAnimation('normal','role.png');
+    // role.addAnimation('normal','role.png');
     //in sublime
     role.addAnimation('normal','assets/role.png');
     //role.setCollider('circle', 0, 0, 15);
@@ -56,7 +75,7 @@ var dx, dy; //increment of location
       var bx = [250,250,5,495,130,30,30,150,350,width-70,130];
       var by = [5,695,350,350,310,205,415,height-60,130,height/2+100,height-135];
       var box = createSprite(bx[i],by[i]);
-      //var picString = 'obstacle'+i+'.png'
+      // var picString = 'obstacle'+i+'.png'
       //in sublime
       var picString = 'assets/obstacle'+i+'.png';
       box.addAnimation('normal',picString);
@@ -65,30 +84,38 @@ var dx, dy; //increment of location
     
     //create a door
     door = createSprite(width-100,10);
-    //door.addAnimation('normal','door.png');
+    // door.addAnimation('normal','door.png');
     //in sublime
     door.addAnimation('normal','assets/door.png');
     
     myRec.onResult = parseResult; // recognition callback
     myRec.start(); // start engine
-    
-    //play clocksound
-    clockSound.play();
-    clockSound.loop();
-    
+  
   }
 
   function draw() {
     background(0);
     
+    if (stage == 0) {
+    fill(255);
+    textSize(18);
+    textAlign(CENTER);
+    text("You are a GPS App designed for blind people", width/2, height/2-24);
+    text("Your goal is to help your owner arrive destination safely", width/2, height/2 + 0);
+    text("Hope you do good job!", width/2, height/2 + 24);
+    fill(255,255,100);
+    textSize(20);
+    text("Say 'Link Start' to start your jouney", width/2, height/2 + 48);
+    }else {
     //role
+    //movement
     role.position.x+=dx;
     role.position.y+=dy;
     
     //test-mouse control
     // role.velocity.x = (mouseX-role.position.x)/10;
     // role.velocity.y = (mouseY-role.position.y)/10;
-    
+      
     //detect collide and overlap with sprites
     role.collide(obstacles,collideWithObstacles);
     role.collide(door,win);
@@ -97,53 +124,86 @@ var dx, dy; //increment of location
     drawSprites();
     
     //black background
-    // fill(0);
-    // noStroke();
-    // rect(0,0,500,700);
+    fill(0);
+    noStroke();
+    rect(0,0,500,700);
     
     // instructions:
     fill(255);
     textSize(16);
     textAlign(LEFT);
     text("Instruction: go,back,left,right,stay", 20, 30);
+        
+    //HP
+    if(hp == 3) {
+    image(life_3, 350,10);
+    }else if(hp == 2) {
+    image(life_2, 350,10);
+    }else if(hp == 1) {
+    image(life_1, 350,10);
+    }
+    }
+    
+    //show text when you win
+    if (winBg == 1) {
+    background(0);
+    fill(255,255,100);
+    textSize(24);
+    textAlign(CENTER);
+    text("You did a great job!", width/2, height/2);
+    }
+    
+    //show text when you lose
+    if (loseBg == 1) {
+    background(0);
+    fill(255,255,100);
+    textSize(20);
+    textAlign(CENTER);
+    text("Your owner doesn't trust you any more!", width/2, height/2);
+    }
   }
 
   function parseResult() {
     // recognition system will often append words into phrases.
     // so hack here is to only use the last word:
     var mostrecentword = myRec.resultString.split(' ').pop();
+    if(mostrecentword.indexOf("start")!==-1) {
+      stage = 1;
+    }
+    if(winBg != 1 && loseBg != 1) {
     if(mostrecentword.indexOf("left")!==-1) { 
       dx=-0.6;
       dy=0;     
       walkSound.playMode('restart');
-      walkSound.play(0,1.8);
+      walkSound.play();
       walkSound.loop();
     }
     else if(mostrecentword.indexOf("right")!==-1) { 
       dx=0.6;
       dy=0;     
       walkSound.playMode('restart');
-      walkSound.play(0,1.8);
+      walkSound.play();
       walkSound.loop();
     }
     else if(mostrecentword.indexOf("go")!==-1) { 
       dx=0;
       dy=-0.6;    
       walkSound.playMode('restart');
-      walkSound.play(0,1.8);
+      walkSound.play();
       walkSound.loop();
     }
     else if(mostrecentword.indexOf("back")!==-1) { 
       dx=0;
       dy=0.6;     
       walkSound.playMode('restart');
-      walkSound.play(0,1.8);
+      walkSound.play();
       walkSound.loop();
     }
     else if(mostrecentword.indexOf("stay")!==-1) { 
       dx=0;
       dy=0; 
-      walkSound.setLoop(false);
+      walkSound.stop();
+    }
     }
     console.log(mostrecentword);
   }
@@ -151,30 +211,47 @@ var dx, dy; //increment of location
   function win() {
     dx=0;
     dy=0;
-    clockSound.setLoop(false);
+    winBg = 1;
+    walkSound.stop();
+    ouchSound.stop();
+    collideSound.stop();
     winSound.playMode('restart');
     winSound.play();
-    walkSound.setLoop(false);
+  }
+  
+  function lose() {
+    dx=0;
+    dy=0;
+    loseBg = 1;
+    walkSound.stop();
+    ouchSound.stop();
+    collideSound.stop();
+    loseSound.playMode('restart');
+    loseSound.play();
   }
 
   function collideWithObstacles() {
     dx=0;
     dy=0;
+    if (hp > 1){
+    hp--;
+    }else {
+    lose();
+    }
     ouchSound.playMode('restart');
     ouchSound.play();
     collideSound.playMode('restart');
     collideSound.play();
-    walkSound.setLoop(false);
+    walkSound.stop();
   }
 
 /* 
 bug:
 1.can't recognize voice if you don't speak for a long time
 2.can't load sound in files I uploaded to github with the same code
-3.walk sound seems not natural
 
 progress:
-sound(done) - ripples - HP - time/distance - black snow - street
+sound(done) - ripples - HP（done）- your statues? - time/distance - street
 
 
 Part4. Write a program to create echo effect when you 
@@ -229,17 +306,6 @@ Subparts
   based on the number of collisions between circle and 
   objects.
 
-Part 6. Write a program to display a dark picture with 
-effect of crafted randomness and changes of light. This 
-will be used to simulate blind. The variation of picture 
-will be determined by the movement of “character”.
-
-Pseudocode:
--Apply crafted randomness to the display of dark picture 
-to simulate visual snow
--Create a bunch of rectangles with low transparency to 
-simulate light
-
 //challenge
 Part 7. Write a program to create a map of street with 
 different obstacles. You should help the character pass 
@@ -255,27 +321,6 @@ Pseudocode:
 -Add movement in certain objects.
 -Go to the next map when the “character” arrives the 
 end point of this map.
-
-Part 8. Write a program to change HP of “character”. 
-The HP will decrease by 1 once the “character” collides 
-with objects (except car). When the HP equals to 0, the 
-scene will change (enter tutorial mode or restart). If 
-“character” is collided by a car, the circle will become 
-a bunch of small circles and change their color to red.
-
-Pseudocode:
--Create a variable to restore the value of HP.
--HP plus -1 once the “character” collides with boundaries 
-or objects (except car/ambulance).
--HP turns to 0 once the “character” collides with 
-car/ambulance.
--If the HP equals to 0 and the “character” collide with 
-a car/ambulance, the circle will become a bunch of small 
-circles and change their color to red. You cannot control 
-it anymore.
--If the HP equals to 0 and the “character” doesn’t collide
-with a car/ambulance, the game will restart from map of home.
-
 
 //End
 Part 10. Write a program to show how much time did you 
