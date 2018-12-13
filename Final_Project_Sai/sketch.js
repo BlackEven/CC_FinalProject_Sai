@@ -23,7 +23,7 @@ var mic;
 // declare sprites
 var obstacles;
 var role;
-var exit;
+var exitDoor;
 var t0 = 100; //duration of exit sign
 var car;
 
@@ -34,6 +34,7 @@ var d; //distance between your role and exit
 
 //scenes management
 var stage = 0;
+var gameMode = 0;
 var winBg = 0;
 var loseBg = 0;
 var dieBg = 0;
@@ -45,28 +46,28 @@ var life_1;
 
 //Ripples
 var ripples = []
-  var waveSpeed = 1;
+var waveSpeed = 1;
 const LIFE_TIME = 150;
 
 function preload() {
-  soundFormats('mp3', 'wav');
-  // ouchSound = loadSound('ouch1.wav');
-  ouchSound = loadSound('assets/ouch1.wav');
-  // collideSound = loadSound('collide_with_objects.wav');
+  soundFormats('mp3','wav');
+  //ouchSound = loadSound('ouch.mp3');
+  ouchSound = loadSound('assets/ouch.mp3');
+  //collideSound = loadSound('collide_with_objects.wav');
   collideSound = loadSound('assets/collide_with_objects.wav');
-  // winSound = loadSound('win.wav');
+  //winSound = loadSound('win.wav');
   winSound = loadSound('assets/win.wav');
-  // loseSound = loadSound('lose.wav');
+  //loseSound = loadSound('lose.wav');
   loseSound = loadSound('assets/lose.wav');
-  // walkSound = loadSound('walkIndoor.wav');
+  //walkSound = loadSound('walkIndoor.wav');
   walkSound = loadSound('assets/walkIndoor.wav');
-  // streetSound = loadSound('street1.wav');
-  streetSound = loadSound('assets/street1.wav');
-  // carSound = loadSound('car.wav');
+  //streetSound = loadSound('street.wav');
+  streetSound = loadSound('assets/street.wav');
+  //carSound = loadSound('car.wav');
   carSound = loadSound('assets/car.wav');
-  // carCrashSound = loadSound('carCrash.wav');
-  carCrashSound = loadSound('assets/carCrash.wav');
-	
+  //carCrashSound = loadSound('carCrash.mp3');
+  carCrashSound = loadSound('assets/carCrash.mp3');
+  
   // life_3 = loadImage('3_life.png');
   // life_2 = loadImage('2_life.png');
   // life_1 = loadImage('1_life.png');
@@ -81,14 +82,14 @@ function setup() {
 
   // create a user controlled sprite
   role = createSprite(50,650);
-  role.addAnimation('normal', 'role.png');
+  // role.addAnimation('normal', 'role.png');
   //in sublime
   role.addAnimation('normal','assets/role.png');
   //role.setCollider('circle', 0, 0, 15);
   dx = 0;
   dy = 0;
   
-	  // create obstacle group
+    // create obstacle group
   obstacles = new Group();
   for (var i = 0; i < 10; i++) {
     var bx = [250, 250, 5, 495, 330, 110, 330, 150, 390, 130];
@@ -104,15 +105,15 @@ function setup() {
   }
 
   //create a door
-  exit = createSprite(200, 10, 80, 20);
-  // exit.addAnimation('normal', 'exit.png');
+  exitDoor = createSprite(200, 10, 80, 20);
+  // exitDoor.addAnimation('normal', 'exit.png');
   //in sublime
-  door.addAnimation('normal','assets/exit.png');
-	
-	// create a car
+  exitDoor.addAnimation('normal','assets/exit.png');
+  
+  // create a car
   car = createSprite(-25,200,50,40);
   // car.addAnimation('normal', 'car.png');
-	//in sublime
+  //in sublime
   car.addAnimation('normal', 'assets/car.png');
 
   myRec.onResult = parseResult; // recognition callback
@@ -121,11 +122,11 @@ function setup() {
   //get audio from microphone.
   mic = new p5.AudioIn();
   mic.start();
-	
-	streetSound.setVolume(0.2);
-	streetSound.playMode('restart');
-	streetSound.play();
-	streetSound.loop();
+  
+  streetSound.setVolume(0.2);
+  streetSound.playMode('restart');
+  streetSound.play();
+  streetSound.loop();
 
 }
 
@@ -136,29 +137,29 @@ function draw() {
   if (stage == 0) {
     intro();
   } else if (stage == 1){
-		
+    
     //role
     //move
     roleMove();
     //detect collision with sprites
     role.collide(obstacles, collideWithObstacles);
-    role.collide(exit, win);
+    role.collide(exitDoor, win);
     role.collide(car, die);
-		
-		//car
-		//move
-		car.setSpeed(2.5);
-		//loop
-		if (car.position.x > width + 25) {
-			car.position.x = -400;
-			var vol_car = map(role.position.y,200,700,0.7,0);
-			if (winBg != 1 && loseBg != 1 && dieBg != 1) {
-			carSound.setVolume(vol_car);
-			carSound.playMode('restart');
+    
+    //car
+    //move
+    car.setSpeed(2.5);
+    //loop
+    if (car.position.x > width + 25) {
+      car.position.x = -400;
+      var vol_car = map(role.position.y,200,700,0.7,0);
+      if (winBg != 1 && loseBg != 1 && dieBg != 1) {
+      carSound.setVolume(vol_car);
+      carSound.playMode('restart');
       carSound.play();
-			}
-		}
-		
+      }
+    }
+    
     //display sprites
     drawSprites();
 
@@ -196,8 +197,8 @@ function draw() {
     textStyle(BOLD);
     text("Your owner doesn't trust you any more!", width/2, height/2);
   }
-	
-	//show text when you die
+  
+  //show text when you die
   if (dieBg == 1) {
     background(255,0,0);
     fill(0);
@@ -212,10 +213,15 @@ function parseResult() {
   // recognition system will often append words into phrases.
   // so hack here is to only use the last word:
   var mostrecentword = myRec.resultString.split(' ').pop();
-  if (mostrecentword.indexOf("start")!==-1) {
+  if (mostrecentword.indexOf("easy")!==-1) {
     stage = 1;
+    gameMode = 0;
   }
-  if (winBg != 1 && loseBg != 1 && dieBg != 1) {
+  if (mostrecentword.indexOf("hard")!==-1) {
+    stage = 1;
+    gameMode = 1;
+  }
+  if (stage == 1 && winBg != 1 && loseBg != 1 && dieBg != 1) {
     if (mostrecentword.indexOf("left")!==-1) { 
       dx=-0.6;
       dy=0;       
@@ -271,9 +277,9 @@ function win() {
   walkSound.stop();
   ouchSound.stop();
   collideSound.stop();
-	streetSound.stop();
-	carSound.stop();
-	winSound.setVolume(0.6);
+  streetSound.stop();
+  carSound.stop();
+  winSound.setVolume(0.6);
   winSound.playMode('restart');
   winSound.play();
 }
@@ -285,8 +291,8 @@ function lose() {
   walkSound.stop();
   ouchSound.stop();
   collideSound.stop();
-	streetSound.stop();
-	carSound.stop();
+  streetSound.stop();
+  carSound.stop();
   loseSound.playMode('restart');
   loseSound.play();
 }
@@ -294,13 +300,13 @@ function lose() {
 function die() {
   dx=0;
   dy=0;
-	car.remove();
+  car.remove();
   dieBg = 1;
   walkSound.stop();
   ouchSound.stop();
   collideSound.stop();
-	streetSound.stop();
-	carSound.stop();
+  streetSound.stop();
+  carSound.stop();
   carCrashSound.playMode('restart');
   carCrashSound.play();
 }
@@ -313,7 +319,9 @@ function collideWithObstacles() {
 
   if (hp > 1) {
     //reduce hp every time you collide with obstacles
+    if (gameMode == 1) {
     hp--;
+    }
   } else {
     //call lose() function when hp<1
     lose();
@@ -336,7 +344,7 @@ function intro() {
   fill(255, 255, 100);
   textSize(20);
   textStyle(BOLD);
-  text("Say 'Start' to start your jouney", width/2, height/2 + 48);
+  text("Say 'Easy' or 'Hard' to start your jouney", width/2, height/2 + 54);
 }
 
 function roleMove() {
@@ -359,21 +367,21 @@ function drawRipple() {
   for (let i = ripples.length-1; i> 0; i--) {
     if (ripples[i].t > LIFE_TIME) {
       //Remove 1 element from index i
-      ripples.splice(i, 1)
-        continue
+      ripples.splice(i, 1);
+      continue;
     }
 
     ripples[i].move();
     ripples[i].display();
 
     //reflect when ripples encounter obstacles and car
-		for (let c of ripples[i].reflect(car)){
-		 ripples.push(c);
-		 }
+    for (let c of ripples[i].reflect(car)){
+     ripples.push(c);
+     }
     for (var j = 0; j < obstacles.length; j++) {
       for (let r of ripples[i].reflect(obstacles[j])){
         ripples.push(r);
-			}
+      }
       }
 
       //cover
@@ -387,7 +395,7 @@ function drawRipple() {
         rectMode(CENTER);
         rect(cx[k], cy[k], cw[k], ch[k]);
       }
-		rect(car.position.x,car.position.y,50,40);
+    rect(car.position.x,car.position.y,50,40);
   }
 }
 
@@ -395,7 +403,7 @@ function showExit() {
   t0++;
   t1 = constrain(t0, 0, 100);
   //display the door when the role is nearby the soor
-    if (role.position.x > exit.position.x -150 && role.position.x < exit.position.x + 100) {
+    if (role.position.x > exitDoor.position.x -150 && role.position.x < exitDoor.position.x + 100) {
       if (d<200) {
         //the transparency is reduced as time goes by
         fill(100, 255, 100, 255*sq((100-t1)/100));
@@ -422,12 +430,14 @@ function showUI() {
   text("Distance: "+ d, 300, 60);
 
   //HP
+  if (gameMode == 1) {
   if (hp == 3) {
     image(life_3, 20, 40);
   } else if (hp == 2) {
     image(life_2, 20, 40);
   } else if (hp == 1) {
     image(life_1, 20, 40);
+  }
   }
 }
 /* 
