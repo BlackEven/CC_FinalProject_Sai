@@ -51,8 +51,8 @@ const LIFE_TIME = 150;
 
 function preload() {
   soundFormats('mp3','wav');
-  //ouchSound = loadSound('ouch.mp3');
-  ouchSound = loadSound('assets/ouch.mp3');
+  //ouchSound = loadSound('ouch1.mp3');
+  ouchSound = loadSound('assets/ouch1.mp3');
   //collideSound = loadSound('collide_with_objects.wav');
   collideSound = loadSound('assets/collide_with_objects.wav');
   //winSound = loadSound('win.wav');
