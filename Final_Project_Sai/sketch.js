@@ -9,7 +9,7 @@ Final Project by Sai Liu
  blind find the destination. You could control the 
  movement of your character by saying “Go”, “Back”, 
  “Left” , “Right”and "Stay".
- 
+   
  */
 
 //p5.SpeechRec
@@ -50,29 +50,29 @@ const LIFE_TIME = 150;
 
 function preload() {
   soundFormats('mp3', 'wav');
-  ouchSound = loadSound('ouch1.wav');
-  // ouchSound = loadSound('assets/ouch1.wav');
-  collideSound = loadSound('collide_with_objects.wav');
-  // collideSound = loadSound('assets/collide_with_objects.wav');
-  winSound = loadSound('win.wav');
-  // winSound = loadSound('assets/win.wav');
-  loseSound = loadSound('lose.wav');
-  // loseSound = loadSound('assets/lose.wav');
-  walkSound = loadSound('walkIndoor.wav');
-  // walkSound = loadSound('assets/walkIndoor.wav');
-	streetSound = loadSound('street1.wav');
-  // streetSound = loadSound('assets/street1.wav');
-	carSound = loadSound('car.wav');
-  // carSound = loadSound('assets/car.wav');
-	carCrashSound = loadSound('carCrash.wav');
-  // carCrashSound = loadSound('assets/carCrash.wav');
+  // ouchSound = loadSound('ouch1.wav');
+  ouchSound = loadSound('assets/ouch1.wav');
+  // collideSound = loadSound('collide_with_objects.wav');
+  collideSound = loadSound('assets/collide_with_objects.wav');
+  // winSound = loadSound('win.wav');
+  winSound = loadSound('assets/win.wav');
+  // loseSound = loadSound('lose.wav');
+  loseSound = loadSound('assets/lose.wav');
+  // walkSound = loadSound('walkIndoor.wav');
+  walkSound = loadSound('assets/walkIndoor.wav');
+  // streetSound = loadSound('street1.wav');
+  streetSound = loadSound('assets/street1.wav');
+  // carSound = loadSound('car.wav');
+  carSound = loadSound('assets/car.wav');
+  // carCrashSound = loadSound('carCrash.wav');
+  carCrashSound = loadSound('assets/carCrash.wav');
 	
-  life_3 = loadImage('3_life.png');
-  life_2 = loadImage('2_life.png');
-  life_1 = loadImage('1_life.png');
-  // life_3 = loadImage('assets/3_life.png');
-  // life_2 = loadImage('assets/2_life.png');
-  // life_1 = loadImage('assets/1_life.png');
+  // life_3 = loadImage('3_life.png');
+  // life_2 = loadImage('2_life.png');
+  // life_1 = loadImage('1_life.png');
+  life_3 = loadImage('assets/3_life.png');
+  life_2 = loadImage('assets/2_life.png');
+  life_1 = loadImage('assets/1_life.png');
 }
 
 function setup() {
@@ -83,7 +83,7 @@ function setup() {
   role = createSprite(50,650);
   role.addAnimation('normal', 'role.png');
   //in sublime
-  //role.addAnimation('normal','assets/role.png');
+  role.addAnimation('normal','assets/role.png');
   //role.setCollider('circle', 0, 0, 15);
   dx = 0;
   dy = 0;
@@ -96,24 +96,24 @@ function setup() {
     var bw = [500, 500, 10, 10, 60, 200, 200, 60, 200, 60];
     var bh = [10, 10, 700, 700, 60, 100, 100, 60, 100, 60];
     var box = createSprite(bx[i], by[i], bw[i], bh[i]);
-    var picString = 'street_obstacle'+i+'.png'
+    // var picString = 'street_obstacle'+i+'.png'
       //in sublime
-      //var picString = 'assets/street_obstacle'+i+'.png';
+      var picString = 'assets/street_obstacle'+i+'.png';
       box.addAnimation('normal', picString);
     obstacles.add(box);
   }
 
   //create a door
   exit = createSprite(200, 10, 80, 20);
-  exit.addAnimation('normal', 'exit.png');
+  // exit.addAnimation('normal', 'exit.png');
   //in sublime
-  //door.addAnimation('normal','assets/exit.png');
+  door.addAnimation('normal','assets/exit.png');
 	
 	// create a car
   car = createSprite(-25,200,50,40);
-  car.addAnimation('normal', 'car.png');
+  // car.addAnimation('normal', 'car.png');
 	//in sublime
-  //car.addAnimation('normal', 'assets/car.png');
+  car.addAnimation('normal', 'assets/car.png');
 
   myRec.onResult = parseResult; // recognition callback
   myRec.start(); // start engine
@@ -366,10 +366,14 @@ function drawRipple() {
     ripples[i].move();
     ripples[i].display();
 
-    //reflect when ripples encounter obstacles
+    //reflect when ripples encounter obstacles and car
+		for (let c of ripples[i].reflect(car)){
+		 ripples.push(c);
+		 }
     for (var j = 0; j < obstacles.length; j++) {
-      for (let r of ripples[i].reflect(obstacles[j]))
-        ripples.push(r)
+      for (let r of ripples[i].reflect(obstacles[j])){
+        ripples.push(r);
+			}
       }
 
       //cover
